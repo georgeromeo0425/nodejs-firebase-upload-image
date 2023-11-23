@@ -57,11 +57,9 @@ const getFilesInFolder = async () => {
     const [files] = await bucket.getFiles(options);
 
     for (const file of files) {
-      if (file.metadata && file.metadata.kind === "storage#object") {
-        const filePath = `${file.name}`;
-        await file.download({ destination: filePath });
-        console.log(`Downloaded file: ${file.name}`);
-      }
+      const filePath = `${file.name}`;
+      await file.download({ destination: filePath });
+      console.log(`Downloaded file: ${file.name}`);
     }
   } catch (error) {
     console.error("Error: ", error);
