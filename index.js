@@ -1,46 +1,74 @@
+const mime = require("mime");
+
 const keyFilename = "./config/face-recognition-7f0db-aa3af157943e.json";
-const { projectId } = require(keyFilename);
-const bucketName = `${projectId}.appspot.com`;
+const { project_id } = require(keyFilename);
+const bucketName = `${project_id}.appspot.com`;
 
 const gcs = require("@google-cloud/storage")({
-  projectId,
+  project_id,
   keyFilename,
 });
 
 const bucket = gcs.bucket(bucketName);
 
-const filePath = `./resources/google.jpg`;
-const uploadTo = `images/google.jpg`;
-const fileMime = mime.getType(filePath);
+///////////////////// This is for uploading //////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 
-bucket.upload(
-  filePath,
-  {
-    destination: uploadTo,
-    public: true,
-    metadata: { contentType: fileMime, cacheControl: "public, max-age=300" },
-  },
-  function (err, file) {
-    if (err) {
-      console.log(err);
-      return;
+// const filePath = `./resources/google.jpg`;
+// const uploadTo = `images/google.jpg`;
+// const fileMime = mime.getType(filePath);
+
+// bucket.upload(
+//   filePath,
+//   {
+//     destination: uploadTo,
+//     public: true,
+//     metadata: { contentType: fileMime, cacheControl: "public, max-age=300" },
+//   },
+//   function (err, file) {
+//     if (err) {
+//       console.log(err);
+//       return;
+//     }
+//     console.log(createPublicFileURL(uploadTo));
+//   }
+// );
+
+// function createPublicFileURL(storageName) {
+//   return `http://storage.googleapis.com/${bucketName}/${encodeURIComponent(
+//     storageName
+//   )}`;
+// }
+
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
+///////////////////// This is for downloading //////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
+const folderPath = `images`;
+
+const getFilesInFolder = async () => {
+  const options = {
+    prefix: folderPath,
+  };
+
+  try {
+    const [files] = await bucket.getFiles(options);
+
+    for (const file of files) {
+      if (file.metadata && file.metadata.kind === "storage#object") {
+        const filePath = `${file.name}`;
+        await file.download({ destination: filePath });
+        console.log(`Downloaded file: ${file.name}`);
+      }
     }
-    console.log(createPublicFileURL(uploadTo));
+  } catch (error) {
+    console.error("Error: ", error);
   }
-);
+};
 
-function createPublicFileURL(storageName) {
-  return `http://storage.googleapis.com/${bucketName}/${encodeURIComponent(
-    storageName
-  )}`;
-}
-
-// const srcFilename = `img/gg.jpg`;
-// const destFilename = `google.jpg`;
-
-// const options = {
-//   destination: destFilename,
-// };
+getFilesInFolder();
 
 // bucket
 //   .file(srcFilename)
@@ -55,9 +83,7 @@ function createPublicFileURL(storageName) {
 //   });
 
 // /*
-// //// you can check if a files exists or delete a file using the following
+//// you can check if a files exists or delete a file using the following
 // const gcFile = bucket.file(uploadTo);
 // gcFile.exists((err,exists)=>console.log(err||exists));
 // gcFile.delete((err,res)=>console.log(err||res));
-
-// */
